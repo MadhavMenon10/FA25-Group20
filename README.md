@@ -7,3 +7,7 @@ Team Members: jinyis2, rohanpk2, japardi2, zoyak2, avayaka2, duman, zsala
 
 
 Project Manager: madhav4
+
+
+Main dataset: https://github.com/spMohanty/PlantVillage-Dataset/tree/master/leaf_grouping/leaf_maps
+
