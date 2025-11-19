@@ -98,3 +98,54 @@ print(f"Total number of parameters: {total_params:,}")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #checks for GPU
 model = model.to(device) #moves model to GPU
+
+#Training
+
+criterion = nn.CrossEntropyLoss() #loss function for multi-class classification
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001) #Adam optimizer, automatically adjusts learning rate
+
+num_epochs = 10
+
+for epoch in range(num_epochs):
+    model.train()
+    train_loss = 0.0
+    train_correct = 0
+    train_total = 0
+
+    for images, labels in train_loader: #iterates through the batches
+        images, labels = images.to(device), labels.to(device) #move data to GPU
+
+        outputs = model(images) #forward pass = gets predictions
+        loss = criterion(outputs, labels) #compute loss 
+        optimizer.zero_grad() #clears the gradients PyTorch accumulates
+        loss.backward() #backward pass = calculates gradients to adjust weights
+        optimizer.step() #updates weights, where the learning actually happens
+
+        train_loss += loss.item() #.item() turns the tensor into a number 
+        _, predicted = torch.max(outputs.data, 1) #gets the class with highest score, the _ gets the index
+        train_total += labels.size(0) 
+        train_correct += (predicted == labels).sum().item()
+
+    model.eval()
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+
+    with torch.no_grad(): #turns off gradients since weights dont need to be updated and it makes it faster
+        for images, labels in val_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+            val_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            val_total += labels.size(0)
+            val_correct += (predicted == labels).sum().item()
+
+    train_accuracy = train_correct / train_total
+    val_accuracy = val_correct / val_total
+    print(f'Epoch [{epoch+1}/{num_epochs}]')
+    print(f'Train Loss: {train_loss/len(train_loader):.4f}, Train Acc: {train_accuracy:.2f}%')
+    print(f'Val Loss: {val_loss/len(val_loader):.4f}, Val Acc: {val_accuracy:.2f}%')
+
+torch.save(model.state_dict(), 'plant_classifier.pth')
